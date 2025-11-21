@@ -2,20 +2,27 @@
 #include "main.h"
 #include "osc.h"
 #include "uart.h"
+#include "udpconfig.h"
 
 // Cấu hình WiFi
 const char* ssid = "Cube Touch";
 const char* password = "admin123";
 
 // Cấu hình OSC
-const char* resolume_ip = "192.168.0.202";
+const char* resolume_ip = "192.168.0.241";
 const int resolume_port = 7000;
+
+// Cấu hình OSC
+const char* server_ip = "192.168.0.202";
+const int server_port = 7000;
 
 WiFiUDP udp;
 IPAddress resolume_address;
 
 bool touchActive = false;
 unsigned long touchDuration = 0;
+
+int valuetouch = 0;
 
 
 void setup() {
@@ -42,6 +49,9 @@ void setup() {
   // Khởi tạo UART module
   initUART();
   
+  // Khởi tạo UDP Touch module
+  initUDPTouch();
+  
   Serial.println("Sẵn sàng gửi OSC đến Resolume!");
   Serial.println("Nhấn phím bất kỳ trong Serial Monitor để gửi lệnh OSC");
   Serial.println("Lệnh: status | test | send:DATA | hoặc Enter");
@@ -50,14 +60,23 @@ void setup() {
 void loop() {
     // Xử lý dữ liệu UART từ PIC
     handleUARTData();
-    touchActive = isTouchActive();
-    touchDuration = getTouchDuration();
-    sendResolumeInit();
-    delay(1000);
-    sendResolumeEnable();
-    delay(1000);
-    sendResolumeBack(5);
-    delay(1000);
-    sendResolumeMain();
-    delay(5000);
+    valuetouch = getValue();
+    Serial.println(valuetouch);
+    
+    // Gửi touch value qua UDP đến server
+    sendTouchValue(valuetouch);
+    
+    delay(100); // Tránh spam quá nhiều
+    // touchActive = isTouchActive();
+    // touchDuration = getTouchDuration();
+    // Serial.printf("Touch Active: %s, Duration: %lu ms\n", touchActive ? "YES" : "NO", touchDuration);
+    // delay(1000);
+    // sendResolumeInit();
+    // delay(1000);
+    // sendResolumeEnable();
+    // delay(1000);
+    // sendResolumeBack(5);
+    // delay(1000);
+    // sendResolumeMain();
+    // delay(5000);
 }

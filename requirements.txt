@@ -1,0 +1,15 @@
+# UDP Touch Receiver Requirements
+# Chương trình Python này không cần thư viện external
+# Chỉ sử dụng built-in libraries của Python 3
+
+# Yêu cầu:
+# - Python 3.6 hoặc cao hơn
+# - Không cần pip install gì thêm
+
+# Nếu muốn thêm tính năng đồ thị real-time:
+# matplotlib>=3.5.0
+# numpy>=1.21.0
+
+# Nếu muốn thêm web interface:
+# flask>=2.0.0
+# socketio>=5.0.0

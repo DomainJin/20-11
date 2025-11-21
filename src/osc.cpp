@@ -130,7 +130,7 @@ void sendResolumeBack(int n){
     for(int i = 0; i <=n; i++){
     setDirClip(1,2,0);
     setDirClip(2,2,0);
-    // setDirClip(3,2,0);
+    setDirClip(3,2,0);
     }
     
     // setDirClip(2, 2, 0);

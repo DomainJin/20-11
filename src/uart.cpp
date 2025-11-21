@@ -9,6 +9,11 @@ HardwareSerial* pic_serial = NULL;
 static String uart_rx_buffer = "";
 static bool uart_initialized = false;
 
+//touch value getters
+int status = 0;
+int value = 0;
+int threshold = 0; 
+
 
 // Touch state variables
 static int last_raw_touch = 0;
@@ -67,18 +72,21 @@ void handleUARTData() {
                 // Serial.printf("[PIC] Thô: %s\n", uart_rx_buffer.c_str());
                 
                 if (uart_rx_buffer.startsWith("Val:")) {
+                    value = getValue(uart_rx_buffer);
                     // Serial.printf("[PIC] Value: %d\n", getValue(uart_rx_buffer));
                     
                 }
                 else if (uart_rx_buffer.startsWith("Thr:")) {
+                    threshold = getThreshold(uart_rx_buffer);
                     // Serial.printf("[PIC] Threshold: %d\n", getThreshold(uart_rx_buffer));
                 }
                 else if (uart_rx_buffer.startsWith("Stt:")) {
+                    status = getRawTouch(uart_rx_buffer);
                     // Serial.printf("[PIC] Status: %d\n", getRawTouch(uart_rx_buffer));
-                    int touchState = getRawTouch(uart_rx_buffer);
-                    if (touchState >= 0) {  // Chỉ xử lý nếu có dữ liệu hợp lệ
-                        processTouchEvent(touchState);
-                    }
+                    // int touchState = getRawTouch(uart_rx_buffer);
+                    // if (touchState >= 0) {  // Chỉ xử lý nếu có dữ liệu hợp lệ
+                    //     processTouchEvent(touchState);
+                    // }
                 }
                 uart_rx_buffer = "";
             }
@@ -161,7 +169,7 @@ int getRawTouch(const String& data) {
     }
     return -1;
 }
-
+0
 int getThreshold(const String& data) {
     if (data.startsWith("Thr:")) {
         int colonPos = data.indexOf(':');
@@ -180,4 +188,14 @@ int getValue(const String& data) {
         return value.toInt();
     }
     return -1;
+}
+
+int getRawTouch() { 
+    return status;
+}
+int getValue() { 
+    return value;
+}
+int getThreshold() { 
+    return threshold;
 }

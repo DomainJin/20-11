@@ -89,6 +89,10 @@ int getThreshold(const String& data);
  */
 int getValue(const String& data);
 
+int getValue();
+int getThreshold();
+int getRawTouch();
+
 /**
  * @brief Xử lý lệnh UART trong loop
  */
