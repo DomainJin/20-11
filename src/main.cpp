@@ -1,8 +1,5 @@
 #include <Arduino.h>
 #include "main.h"
-#include "osc.h"
-#include "uart.h"
-#include "udpconfig.h"
 
 // Cấu hình WiFi
 const char* ssid = "Cube Touch";
@@ -21,70 +18,87 @@ IPAddress resolume_address;
 
 bool touchActive = false;
 unsigned long touchDuration = 0;
+bool sendEnableOnce = false;
+bool sendBackOnce = false;
+bool sendMainOnce = false;
+bool sendInitOnce = false;
+int mainRunMillis = 0;
 
 int valuetouch = 0;
+int operationTime = 2000;    // 2 giây để kích hoạt main effect
+int mainEffectime = 6000;    // 6 giây main effect chạy
+
 
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println("\nKhởi động ESP32 OSC Client...");
-  
-  // Kết nối WiFi
-  WiFi.begin(ssid, password);
-  Serial.print("Đang kết nối WiFi");
-  
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  
-  Serial.println("");
-  Serial.println("WiFi đã kết nối!");
-  Serial.print("Địa chỉ IP: ");
-  Serial.println(WiFi.localIP());
-  
-  // Khởi tạo OSC module
-  initOSC();
-  
-  // Khởi tạo UART module
-  initUART();
-  
-  // Khởi tạo UDP Touch module
-  initUDPTouch();
-  
-  Serial.println("Sẵn sàng gửi OSC đến Resolume!");
-  Serial.println("Nhấn phím bất kỳ trong Serial Monitor để gửi lệnh OSC");
-  Serial.println("Lệnh: status | test | send:DATA | hoặc Enter");
+    Serial.begin(115200);
+    Serial.println("\nKhởi động ESP32 OSC Client...");
+    
+    // Cấu hình pin IO15 cho xi lanh
+    pinMode(15, OUTPUT);
+    digitalWrite(15, LOW);
+    
+    // Kết nối WiFi
+    WiFi.begin(ssid, password);
+    Serial.print("Đang kết nối WiFi");
+    
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+    }
+    
+    Serial.println("");
+    Serial.println("WiFi đã kết nối!");
+    Serial.print("Địa chỉ IP: ");
+    Serial.println(WiFi.localIP());
+    
+    // Khởi tạo các modules
+    initOSC();
+    initUART();
+    initUDPTouch();
+    initLED();
+    
+    Serial.println("Tất cả modules đã sẵn sàng!");
 }
 
 void loop() {
-    // Xử lý dữ liệu UART từ PIC
+    // Xử lý dữ liệu UART và UDP
     handleUARTData();
-    valuetouch = getValue();
-    // Serial.println("value: " + String(valuetouch));
-    int threshold = getThreshold();
-    Serial.println("threshold: " + String(threshold));
-    // touchActive = isTouchActive();
-    // touchDuration = getTouchDuration();
-    // Serial.printf("Touch Active: %s, Duration: %lu ms\n", touchActive ? "YES" : "NO", touchDuration);
+    handleUDPReceive();
     
-    // Gửi touch value qua UDP đến server
-    // sendTouchValue(valuetouch);
-    // delay(100); // Tránh spam quá nhiều
+    // Lấy trạng thái touch hiện tại
+    touchActive = isTouchActive();
+    touchDuration = getTouchDuration();
 
-    // delay(1000);
-    // sendResolumeInit();
-    // delay(1000);
-    // sendResolumeEnable();
-    // delay(1000);
-    // sendResolumeBack(5);
-    // delay(1000);
-    // sendResolumeMain();
-    // delay(5000);
+    if(touchActive){
+        sendEnableOnce = true;
+    }
+    
+    if(sendEnableOnce){
+        sendResolumeEnable();
+        sendEnableOnce = false;
+    }
 
-    
-   
-    
-    sendUARTCommand("E");
-    delay(3000);
+    if(!touchActive && touchDuration < operationTime){
+        sendBackOnce = true;
+    }
+    if(sendBackOnce){
+        sendResolumeBack(1);
+        sendBackOnce = false;
+    }
+    if(touchActive && touchDuration >= operationTime){
+        sendMainOnce = true;
+        mainRunMillis = millis();
+    }
+    if(sendMainOnce){
+        sendResolumeMain();
+        sendMainOnce = false;
+    }
+    if(!touchActive && (millis() - mainRunMillis) >= mainEffectime){
+        sendInitOnce = true;
+    }
+    if(sendInitOnce){
+        sendResolumeInit();
+        sendInitOnce = false;
+    }
 }

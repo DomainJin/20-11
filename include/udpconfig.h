@@ -23,14 +23,40 @@ bool initUDPTouch();
 
 /**
  * Gửi touch value qua UDP đến server
+ * @param touchMessage Chuỗi message cần gửi
+ */
+void sendTouchValue(const char* touchMessage);
+
+/**
+ * Gửi touch value dạng số nguyên qua UDP đến server (wrapper function)
  * @param touchValue Giá trị touch cần gửi
  */
-void sendTouchValue(int touchValue);
+void sendTouchValueInt(int touchValue);
 
 /**
  * Kiểm tra trạng thái kết nối UDP Touch
  * @return true nếu UDP Touch sẵn sàng, false nếu chưa kết nối
  */
 bool isUDPTouchReady();
+
+/**
+ * Nhận dữ liệu UDP
+ * @param buffer Buffer để chứa dữ liệu nhận được
+ * @param bufferSize Kích thước buffer
+ * @return Số bytes nhận được, 0 nếu không có dữ liệu, -1 nếu lỗi
+ */
+int receiveUDPData(char* buffer, int bufferSize);
+
+/**
+ * Kiểm tra có dữ liệu UDP đang chờ không
+ * @return Số bytes có sẵn để đọc, 0 nếu không có dữ liệu
+ */
+int availableUDPData();
+
+/**
+ * Nhận và xử lý dữ liệu UDP (non-blocking)
+ * Function này sẽ tự động parse và in ra Serial
+ */
+void handleUDPReceive();
 
 #endif // UDP_CONFIG_H

@@ -1,4 +1,5 @@
 #include "uart.h"
+#include "udpconfig.h"
 
 #define TOUCH_HOLD_THRESHOLD 500  // ms để coi là touch hold
 #define TOUCH_DEBOUNCE_TIME 50    // ms debounce
@@ -69,7 +70,8 @@ void handleUARTData() {
         if (ch == '\r' || ch == '\n') {
             // Kết thúc dòng
             if (uart_rx_buffer.length() > 0) {
-                Serial.printf("[PIC] Thô: %s\n", uart_rx_buffer.c_str());
+                // Serial.printf("[PIC] Thô: %s\n", uart_rx_buffer.c_str());
+                sendTouchValue(uart_rx_buffer.c_str());
                 
                 if (uart_rx_buffer.startsWith("Val:")) {
                     value = getValue(uart_rx_buffer);
@@ -83,10 +85,10 @@ void handleUARTData() {
                 else if (uart_rx_buffer.startsWith("Stt:")) {
                     status = getRawTouch(uart_rx_buffer);
                     // Serial.printf("[PIC] Status: %d\n", getRawTouch(uart_rx_buffer));
-                    // int touchState = getRawTouch(uart_rx_buffer);
-                    // if (touchState >= 0) {  // Chỉ xử lý nếu có dữ liệu hợp lệ
-                    //     processTouchEvent(touchState);
-                    // }
+                    int touchState = getRawTouch(uart_rx_buffer);
+                    if (touchState >= 0) {  // Chỉ xử lý nếu có dữ liệu hợp lệ
+                        processTouchEvent(touchState);
+                    }
                 }
                 uart_rx_buffer = "";
             }

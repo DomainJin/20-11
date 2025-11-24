@@ -6,6 +6,10 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
+#include "led.h"
+#include "osc.h"
+#include "uart.h"
+#include "udpconfig.h"
 
 // ===== CONFIGURATION =====
 
