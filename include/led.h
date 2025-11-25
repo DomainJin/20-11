@@ -7,7 +7,7 @@
 // ===== LED CONFIGURATION =====
 #define LED_PIN 5
 #define NUM_LEDS 150
-#define UPDATE_INTERVAL 5  // ms
+#define UPDATE_INTERVAL 100  // ms
 
 // ===== LED CONTROL VARIABLES =====
 extern Adafruit_NeoPixel strip;
@@ -26,7 +26,7 @@ void enableLEDEffect(bool enable);
 void clearAllLEDs();
 void setAllLEDs(int r, int g, int b);
 void setLEDRange(int start, int end, int r, int g, int b);
-
+void ledHandle();
 // ===== LED UTILITY FUNCTIONS =====
 bool isLEDReady();
 int getCurrentLEDCount();

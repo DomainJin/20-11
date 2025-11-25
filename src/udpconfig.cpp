@@ -9,6 +9,11 @@ const int LOCAL_TOUCH_PORT = 8001;
 WiFiUDP touch_udp;
 IPAddress touch_server_address;
 
+// ===== TOUCH VARIABLES =====
+bool touchActive = false;
+unsigned long touchDuration = 0;
+int r,g,b;
+
 // ===== UDP TOUCH INITIALIZATION =====
 bool initUDPTouch() {
     Serial.println("[UDP_TOUCH] Khởi tạo UDP Touch module...");
@@ -103,6 +108,11 @@ int receiveUDPData(char* buffer, int bufferSize) {
 }
 
 void handleUDPReceive() {
+    touchActive = isTouchActive();
+    touchDuration = getTouchDuration();
+    
+    // Áp dụng màu hiện tại với touch effect
+    applyColorWithBrightness(touchActive, r, g, b);
     if (!isUDPTouchReady()) {
         return;
     }
@@ -156,12 +166,20 @@ void handleUDPReceive() {
                 int xiLanhValue = valueStr.toInt();
                 
                 if (xiLanhValue == 1) {
-                    digitalWrite(15, HIGH);
+                    digitalWrite(2, HIGH);
+                    digitalWrite(15, LOW);
                     Serial.println("[UDP_XILANH] IO15 -> HIGH (Xi lanh BẬT)");
+                } else if (xiLanhValue == 2) {
+                    digitalWrite(2, LOW);
+                    digitalWrite(15, HIGH);
+                    Serial.println("[UDP_XILANH] IO15 -> LOW (Xi lanh TẮT)");
                 } else if (xiLanhValue == 0) {
+                    digitalWrite(2, LOW);
                     digitalWrite(15, LOW);
                     Serial.println("[UDP_XILANH] IO15 -> LOW (Xi lanh TẮT)");
-                } else {
+                }
+                
+                else {
                     Serial.printf("[UDP_XILANH] Giá trị không hợp lệ: %d (chỉ chấp nhận 0 hoặc 1)\n", xiLanhValue);
                 }
             }
@@ -199,9 +217,9 @@ void handleUDPReceive() {
                 
                 if (commaPos1 > 0 && commaPos2 > 0 && commaPos3 > 0) {
                     String target = params.substring(0, commaPos1);
-                    int r = params.substring(commaPos1 + 1, commaPos2).toInt();
-                    int g = params.substring(commaPos2 + 1, commaPos3).toInt();
-                    int b = params.substring(commaPos3 + 1).toInt();
+                    r = params.substring(commaPos1 + 1, commaPos2).toInt();
+                    g = params.substring(commaPos2 + 1, commaPos3).toInt();
+                    b = params.substring(commaPos3 + 1).toInt();
                     
                     if (target.equals("ALL")) {
                         setAllLEDs(r, g, b);
@@ -273,9 +291,9 @@ void handleUDPReceive() {
                 
                 // Tạo hiệu ứng rainbow đơn giản
                 for (int i = 0; i < 256; i += 85) {
-                    int r = (i < 85) ? 255 - i * 3 : (i < 170) ? 0 : (i - 170) * 3;
-                    int g = (i < 85) ? i * 3 : (i < 170) ? 255 - (i - 85) * 3 : 0;
-                    int b = (i < 85) ? 0 : (i < 170) ? (i - 85) * 3 : 255 - (i - 170) * 3;
+                    r = (i < 85) ? 255 - i * 3 : (i < 170) ? 0 : (i - 170) * 3;
+                    g = (i < 85) ? i * 3 : (i < 170) ? 255 - (i - 85) * 3 : 0;
+                    b = (i < 85) ? 0 : (i < 170) ? (i - 85) * 3 : 255 - (i - 170) * 3;
                     
                     setAllLEDs(r, g, b);
                     delay(50);
@@ -291,9 +309,9 @@ void handleUDPReceive() {
                 int space2 = data.indexOf(' ', space1 + 1);
                 
                 if (space1 > 0 && space2 > 0) {
-                    int r = data.substring(0, space1).toInt();
-                    int g = data.substring(space1 + 1, space2).toInt();
-                    int b = data.substring(space2 + 1).toInt();
+                    r = data.substring(0, space1).toInt();
+                    g = data.substring(space1 + 1, space2).toInt();
+                    b = data.substring(space2 + 1).toInt();
                     
                     // Áp dụng màu với touch effect
                     applyColorWithBrightness(true, r, g, b);

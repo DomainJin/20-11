@@ -1,7 +1,7 @@
-#include "led.h"
+#include "main.h"
 
 // ===== LED STRIP OBJECT =====
-Adafruit_NeoPixel strip(NUM_LEDS, LED_PIN, NEO_BGR + NEO_KHZ400);
+Adafruit_NeoPixel strip(150, 5, NEO_GRB + NEO_KHZ800);
 
 // ===== LED CONTROL VARIABLES =====
 bool effectEnable = true;
@@ -10,12 +10,42 @@ int currentLedCount = 0;
 int ledDirection = 1;  // 1: từ đầu đến cuối, -1: từ cuối về đầu
 unsigned long lastUpdateTime = 0;
 
+// ===== COLOR VARIABLES =====
+int current_r = 255, current_g = 0, current_b = 0;  // Màu mặc định đỏ
+bool colorUpdated = false;
+
+
+
 // ===== LED INITIALIZATION =====
 void initLED() {
     Serial.println("[LED] Khởi tạo LED Strip...");
     
     // Khởi tạo LED strip
     strip.begin();
+    
+    // ✅ Test rõ ràng: Tắt hết trước
+    Serial.println("[LED] Tắt hết LED...");
+    strip.clear();
+    strip.show();
+    delay(1000);
+    
+    // ✅ Test màu đơn giản - chỉ 5 LED đầu
+    Serial.println("[LED] Test 5 LED đầu - màu đỏ...");
+    for(int i = 0; i < 5; i++) {
+        strip.setPixelColor(i, strip.Color(255, 0, 0));
+    }
+    strip.show();
+    delay(2000);
+    
+    Serial.println("[LED] Test 5 LED đầu - màu xanh...");
+    for(int i = 0; i < 5; i++) {
+        strip.setPixelColor(i, strip.Color(0, 255, 0));
+    }
+    strip.show();
+    delay(2000);
+    
+    // ✅ Tắt hết và confirm
+    Serial.println("[LED] Tắt hết LED - hoàn thành init");
     strip.clear();
     strip.show();
     
@@ -31,7 +61,24 @@ void initLED() {
                   brightness, ledDirection, effectEnable ? "ON" : "OFF");
 }
 
-// ===== MAIN LED CONTROL FUNCTION =====
+// ===== COLOR UPDATE FUNCTIONS =====
+void updateLEDColor(int r, int g, int b) {
+    current_r = r;
+    current_g = g;
+    current_b = b;
+    colorUpdated = true;
+    Serial.printf("[LED] Màu cập nhật từ UDP: RGB(%d,%d,%d)\n", r, g, b);
+}
+
+void resetLEDColor() {
+    current_r = 255;
+    current_g = 0;
+    current_b = 0;
+    colorUpdated = true;
+    Serial.println("[LED] Reset màu về đỏ mặc định");
+}
+
+// ===== LED CONTROL FUNCTIONS =====
 void applyColorWithBrightness(bool turnOn, int r, int g, int b) {
     if (!effectEnable) return;
     
@@ -47,9 +94,9 @@ void applyColorWithBrightness(bool turnOn, int r, int g, int b) {
         }
         
         // Calculate adjusted colors with brightness
-        int adj_r = (r * brightness) / 255;
-        int adj_g = (g * brightness) / 255;
-        int adj_b = (b * brightness) / 255;
+        int adj_r = r * brightness / 255;
+        int adj_g = g * brightness / 255;
+        int adj_b = b * brightness / 255;
         
         // Apply colors based on direction
         for (int i = 0; i < NUM_LEDS; i++) {
@@ -70,8 +117,8 @@ void applyColorWithBrightness(bool turnOn, int r, int g, int b) {
         
         strip.show();
         
-        // Debug info
-        // Serial.printf("[LED] TurnOn: %s, Count: %d, RGB: (%d,%d,%d)\n", 
+        // Debug màu hiện tại
+        // Serial.printf("[LED] Touch: %s, Count: %d, RGB: (%d,%d,%d)\n", 
         //               turnOn ? "YES" : "NO", currentLedCount, adj_r, adj_g, adj_b);
     }
 }
@@ -161,3 +208,8 @@ int getLEDDirection() {
 bool isEffectEnabled() {
     return effectEnable;
 }
+
+// ===== COLOR GETTER FUNCTIONS =====
+int getCurrentR() { return current_r; }
+int getCurrentG() { return current_g; }
+int getCurrentB() { return current_b; }

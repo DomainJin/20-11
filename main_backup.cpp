@@ -16,7 +16,8 @@ const int server_port = 7000;
 WiFiUDP udp;
 IPAddress resolume_address;
 
-
+bool touchActive = false;
+unsigned long touchDuration = 0;
 bool sendEnableOnce = false;
 bool sendBackOnce = false;
 bool sendMainOnce = false;
@@ -30,30 +31,14 @@ int mainEffectime = 6000;    // 6 giây main effect chạy
 
 
 void setup() {
+
+    
     Serial.begin(115200);
-    Serial.println("\n===== ESP32 WS2812 TEST =====");
-    
-    // ✅ Khởi tạo LED WS2812 đầu tiên
-    initLED();
-    
-    Serial.println("[SETUP] WS2812 hoàn thành!");
-    
-    // ❌ XÓA PHẦN TEST NÀY - NÓ LÀM LED SÁNG XANH VÚ VÚ
-    // Serial.println("[SETUP] Test tất cả WS2812 màu đỏ...");
-    // setAllLEDs(255, 0, 0);
-    // delay(1000);
-    // 
-    // Serial.println("[SETUP] Test tất cả WS2812 màu xanh...");
-    // setAllLEDs(0, 255, 0);  // ← ĐÂY LÀ LÝ DO LED SÁNG XANH!
-    // delay(1000);
-    // 
-    // Serial.println("[SETUP] Tắt tất cả WS2812...");
-    // clearAllLEDs();
+    Serial.println("\nKhởi động ESP32 OSC Client...");
     
     // Cấu hình pin IO15 cho xi lanh
     pinMode(2, OUTPUT);
     pinMode(15, OUTPUT);
-    
     // Kết nối WiFi
     WiFi.begin(ssid, password);
     Serial.print("Đang kết nối WiFi");
@@ -72,12 +57,46 @@ void setup() {
     initOSC();
     initUART();
     initUDPTouch();
+    initLED();  // ✅ THÊM DÒNG NÀY
     
     Serial.println("Tất cả modules đã sẵn sàng!");
 }
 
 void loop() {
+    // Test LED cơ bản trước
+    static unsigned long lastToggle = 0;
+    static int testPhase = 0;
+    
+    if (millis() - lastToggle >= 3000) {
+        lastToggle = millis();
+        testPhase++;
+        
+        switch(testPhase % 4) {
+            case 0:
+                Serial.println("[TEST] LED TẮT");
+                clearAllLEDs();
+                break;
+            case 1:
+                Serial.println("[TEST] LED XANH");
+                setAllLEDs(0, 255, 0);
+                break;
+            case 2:
+                Serial.println("[TEST] LED ĐỎ");
+                setAllLEDs(255, 0, 0);
+                break;
+            case 3:
+                Serial.println("[TEST] LED XANH DƯƠNG");
+                setAllLEDs(0, 0, 255);
+                break;
+        }
+    }
+    
+    // Comment touch logic để test LED trước
+    /*
     handleUARTData();
     handleUDPReceive();
-
+    touchActive = isTouchActive();
+    touchDuration = getTouchDuration();
+    applyColorWithBrightness(touchActive, 0, 255, 0);
+    */
 }
